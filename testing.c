@@ -2,22 +2,24 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MEM_SIZE 1000
+#define MEM_SIZE 25000
 
 int memory[MEM_SIZE], metadata[MEM_SIZE];
 
-/*struct metadata{
-    int from;
-    int to;
-    struct metadata* next;
-};*/
+int check_free(int size){
+    int temp = size;
+    for(int i = 0; i < MEM_SIZE; i++){
+        if(metadata[i] == 0){
 
-int* MyMalloc(){
+        }
+    }
+}
 
+int* MyMalloc(int size){
+    
 }
 
 int main(){
-
     for(int i = 0; i < MEM_SIZE; i++){
         metadata[i] = 0;
         memory[i] = 0;
