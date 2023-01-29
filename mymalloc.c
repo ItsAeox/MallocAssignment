@@ -20,10 +20,6 @@ void *MyMalloc(size_t size){
         current = current->next;
     }
 
-    if (!current){
-        return NULL;
-    }
-
     if (current->size > size + sizeof(struct mem_block)){
         struct mem_block *new_mem_block = (struct mem_block *)((char *)current + sizeof(struct mem_block) + size);
         new_mem_block->size = current->size - sizeof(struct mem_block) - size;
@@ -38,10 +34,7 @@ void *MyMalloc(size_t size){
 }
 
 void MyFree(void *ptr){
-    if (!ptr){
-        return;
-    }
-
+    
     struct mem_block *current = first_mem_block;
     while(current && (char *)current + sizeof(struct mem_block) != ptr){
         current = current->next;
