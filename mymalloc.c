@@ -1,81 +1,93 @@
-#include <stddef.h>
-#include <stdio.h>
+#include<stdio.h>
+#include<stddef.h>
 #include "mymalloc.h"
 
-#define MEM_SIZE 25000
 
-char memory[MEM_SIZE];
-
-struct mem_block{
-    size_t size;
-    int free;
-    struct mem_block *next;
-};
-
-struct mem_block *first_mem_block = (struct mem_block *)memory;
-
-void *MyMalloc(size_t size){
-    struct mem_block *current = first_mem_block;
-    while(current && !(current->free && current->size >= size)){
-        current = current->next;
-    }
-
-    if (current->size > size + sizeof(struct mem_block)){
-        struct mem_block *new_mem_block = (struct mem_block *)((char *)current + sizeof(struct mem_block) + size);
-        new_mem_block->size = current->size - sizeof(struct mem_block) - size;
-        new_mem_block->free = 1;
-        new_mem_block->next = current->next;
-        current->size = size;
-        current->next = new_mem_block;
-    }
-
-    current->free = 0;
-    return (char *)current + sizeof(struct mem_block);
+void initialize(){
+ freeList->size=20000-sizeof(struct block);
+ freeList->free=1;
+ freeList->next=NULL;
 }
 
-void MyFree(void *ptr){
-    
-    struct mem_block *current = first_mem_block;
-    while(current && (char *)current + sizeof(struct mem_block) != ptr){
-        current = current->next;
-    }
+void split(struct block *fitting_slot,size_t size){
+ struct block *new=(void*)((void*)fitting_slot+size+sizeof(struct block));
+ new->size=(fitting_slot->size)-size-sizeof(struct block);
+ new->free=1;
+ new->next=fitting_slot->next;
+ fitting_slot->size=size;
+ fitting_slot->free=0;
+ fitting_slot->next=new;
+}
 
-    if (!current){
-        return;
-    }
 
-    current->free = 1;
+void *MyMalloc(size_t noOfBytes){
+ struct block *curr,*prev;
+ void *result;
+ if(!(freeList->size)){
+  initialize();
+  printf("Memory initialized\n");
+ }
+ curr=freeList;
+ while((((curr->size)<noOfBytes)||((curr->free)==0))&&(curr->next!=NULL)){
+  prev=curr;
+  curr=curr->next;
+  printf("One block checked\n");
+ }
+ if((curr->size)==noOfBytes){
+  curr->free=0;
+  result=(void*)(++curr);
+  printf("Exact fitting block allocated\n");
+  printf("\t%x\t", result);
+  return result;
+ }
+ else if((curr->size)>(noOfBytes+sizeof(struct block))){
+  split(curr,noOfBytes);
+  result=(void*)(++curr);
+  printf("Fitting block allocated with a split\n");
+  printf("\t%x\t", result);
+  return result;
+ }
+ else{
+  result=NULL;
+  printf("Sorry. No sufficient memory to allocate\n");
+  printf("\t%x\t", result);
+  return result;
+ }
+}
 
-    if (current->next && current->next->free){
-        current->size += sizeof(struct mem_block) + current->next->size;
-        current->next = current->next->next;
-    }
+void merge(){
+ struct block *curr,*prev;
+ curr=freeList;
+ while((curr->next)!=NULL){
+  if((curr->free) && (curr->next->free)){
+   curr->size+=(curr->next->size)+sizeof(struct block);
+   curr->next=curr->next->next;
+  }
+  prev=curr;
+  curr=curr->next;
+ }
+}
+
+void MyFree(void* ptr){
+ if(((void*)memory<=ptr)&&(ptr<=(void*)(memory+20000))){
+  struct block* curr=ptr;
+  --curr;
+  curr->free=1;
+  merge();
+ }
+ else printf("Please provide a valid pointer allocated by MyMalloc\n");
 }
 
 int main(){
-    printf("Allocating memory block of size 10...\n");
-    void *ptr1 = MyMalloc(10);
-    printf("Allocated memory block at %p\n", ptr1);
-
-    printf("Allocating memory block of size 20...\n");
-    void *ptr2 = MyMalloc(20);
-    printf("Allocated memory block at %p\n", ptr2);
-
-    printf("Freeing memory block at %p...\n", ptr1);
-    MyFree(ptr1);
-
-    printf("Allocating memory block of size 15...\n");
-    void *ptr3 = MyMalloc(15);
-    printf("Allocated memory block at %p\n", ptr3);
-
-    printf("Freeing memory block at %p...\n", ptr2);
-    MyFree(ptr2);
-
-    printf("Freeing memory block at %p...\n", ptr3);
-    MyFree(ptr3);
-
-    return 0;
+ 
+ int *p=(int)MyMalloc(100*sizeof(int));
+ char *q=(char)MyMalloc(250*sizeof(char));
+ int *r=(int)MyMalloc(1000*sizeof(int));
+ MyFree(p);
+ char *w=(char)MyMalloc(700);
+ MyFree(r);
+ int *k=(int)MyMalloc(500*sizeof(int));
+ printf("Allocation and deallocation is done successfully!");
+ 
 }
-
-
 
