@@ -38,7 +38,7 @@ void* MyMalloc(size_t size){
         return output;
     }
     else{
-        mem_block *free_block = (void*)(curr + size + sizeof(mem_block));
+        mem_block *free_block = (void*)((void*)curr + size + sizeof(mem_block));
         free_block->size = curr->size - (size + sizeof(mem_block));
         free_block->free = 1;
         free_block->next = curr->next;
