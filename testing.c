@@ -1,61 +1,51 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-
-#define MEM_SIZE 25000
-
-char memory[MEM_SIZE];
-
-typedef struct mem_block{
-    size_t size;
-    int free;
-    struct mem_block *next;
-}mem_block;
-
-mem_block *free_mem = (void*)memory;
-
-mem_block *start = (mem_block*)memory;
+#include <stddef.h>
+#include "header.h"
 
 void* MyMalloc(size_t size){
-
-    mem_block *temp;
-    void *output;
+    mem_block *curr, *prev;
+    void *output = NULL;
 
     if(!(free_mem->size)){
-        free_mem->size = 25000;
+        free_mem->size = 25000 - sizeof(mem_block);
         free_mem->free = 1;
         free_mem->next = NULL;  
         printf("\nMemory Initialization Successful.");
     }
 
-    temp = start;
+    curr = free_mem;
 
-    while(temp){
-        if(temp->next == NULL && (temp->size < (size + sizeof(mem_block)))){
-            printf("\nError! Memory Allocation Unsuccessful. Not Enough Memory Available.");
-            output = NULL;
-            return output;
-        }
-        if(temp->size > (size + sizeof(mem_block)) && temp->free == 1){
+    while(curr){
+        printf("\tChecked\t");
+        if(curr->size >= size && curr->free == 1){
             break;
         }
-        printf("\t%x\t", temp);
-        temp = temp->next;
+        curr = curr->next;
     }
 
-    if(temp->size == (size + sizeof(mem_block))){
-        temp->free = 0;
-        output = (void*)(temp + sizeof(mem_block));
-        printf("\nMemory Allocation Successful. No Memory Left In The Heap.");
+    if((curr->size < size || curr->free == 0) && (curr->next == NULL)){
+        printf("\nMemory Alloaction Unsuccessful. Not enough Memory in the heap.");
+        output = NULL;
+        return output;
+    }
+    else if(curr->size == size){
+        curr->free = 0;
+        curr->size = size;
+        output = (void*)(curr + sizeof(mem_block));
+        printf("\nMemory Allocation Successful. Memory is full.");
         printf("\nReturned Pointer with the address of : %x", output);
         return output;
     }
     else{
-        mem_block *temp_2 = (void*)(temp+size+sizeof(mem_block));
-        temp->free = 0;
-        temp->size = size + sizeof(mem_block);
-        temp->next = temp_2;
-        output = (void*)(temp +sizeof(mem_block));
+        mem_block *free_block = (void*)(curr + size + sizeof(mem_block));
+        free_block->size = curr->size - (size + sizeof(mem_block));
+        free_block->free = 1;
+        free_block->next = curr->next;
+        curr->size = size;
+        curr->free = 0;
+        curr->next = free_block;
+        output = (void*)(curr + sizeof(mem_block));
         printf("\nMemory Allocation Successful.");
         printf("\nReturned Pointer with the address of : %x", output);
         return output;
