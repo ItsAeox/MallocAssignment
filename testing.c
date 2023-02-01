@@ -6,7 +6,7 @@
 int free_cap = MEM_SIZE-sizeof(mem_block);
 
 void* MyMalloc(size_t size){
-    mem_block *curr, *prev;
+    mem_block *curr;
     void *output = NULL;
 
     if(!(free_mem->size)){
@@ -18,7 +18,7 @@ void* MyMalloc(size_t size){
 
     curr = free_mem;
 
-    while(curr){
+    while(1){
         if(curr->size >= size && curr->free == 1){
             break;
         }
@@ -57,12 +57,26 @@ void* MyMalloc(size_t size){
     }
 }
 
+void MyFree(void* used_block){
+    if(((void*)memory <= used_block) && (used_block <= (void*)(memory + 25000))){
+        mem_block* curr = used_block;
+        curr -= sizeof(mem_block);
+        curr->free = 1;
+        free_cap += curr->size + sizeof(mem_block);
+        printf("\nMemory Freed. %d Bytes remaining out of %d Bytes.\n", free_cap, MEM_SIZE-sizeof(mem_block));
+    }
+    else {
+        printf("The given pointer is not in the valid range of Memory.");
+    }
+}
+
 int main(){
-    MyMalloc(20000);
+    int *a = (int*)MyMalloc(20000);
     MyMalloc(3000);
     MyMalloc(400);
+    MyFree(a);
     MyMalloc(2000);
-    MyMalloc(1504);
+    MyMalloc(14000);
 
     return 0;
 }
