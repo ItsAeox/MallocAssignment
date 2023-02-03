@@ -1,92 +1,92 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stddef.h>
-#include "mymalloc.h"
-
-
-void initialize(){
- freeList->size=20000-sizeof(struct block);
- freeList->free=1;
- freeList->next=NULL;
-}
-
-void split(struct block *fitting_slot,size_t size){
- struct block *new=(void*)((void*)fitting_slot+size+sizeof(struct block));
- new->size=(fitting_slot->size)-size-sizeof(struct block);
- new->free=1;
- new->next=fitting_slot->next;
- fitting_slot->size=size;
- fitting_slot->free=0;
- fitting_slot->next=new;
-}
-
-
-void *MyMalloc(size_t noOfBytes){
- struct block *curr,*prev;
- void *result;
- if(!(freeList->size)){
-  initialize();
-  printf("Memory initialized\n");
- }
- curr=freeList;
- while((((curr->size)<noOfBytes)||((curr->free)==0))&&(curr->next!=NULL)){
-  prev=curr;
-  curr=curr->next;
-  printf("One block checked\n");
- }
- if((curr->size)==noOfBytes){
-  curr->free=0;
-  result=(void*)(++curr);
-  printf("Exact fitting block allocated\n");
-  printf("\t%x\t", result);
-  return result;
- }
- else if((curr->size)>(noOfBytes+sizeof(struct block))){
-  split(curr,noOfBytes);
-  result=(void*)(++curr);
-  printf("Fitting block allocated with a split\n");
-  printf("\t%x\t", result);
-  return result;
- }
- else{
-  result=NULL;
-  printf("Sorry. No sufficient memory to allocate\n");
-  printf("\t%x\t", result);
-  return result;
- }
-}
-
-void merge(){
- struct block *curr,*prev;
- curr=freeList;
- while((curr->next)!=NULL){
-  if((curr->free) && (curr->next->free)){
-   curr->size+=(curr->next->size)+sizeof(struct block);
-   curr->next=curr->next->next;
-  }
-  prev=curr;
-  curr=curr->next;
- }
-}
-
-void MyFree(void* ptr){
- if(((void*)memory<=ptr)&&(ptr<=(void*)(memory+20000))){
-  struct block* curr=ptr;
-  --curr;
-  curr->free=1;
-  merge();
- }
- else printf("Please provide a valid pointer allocated by MyMalloc\n");
-}
+#include "MyMalloc.h"
 
 int main(){
- 
- int *p=(int)MyMalloc(100*sizeof(int));
- char *q=(char)MyMalloc(250*sizeof(char));
- int *r=(int)MyMalloc(1000*sizeof(int));
- MyFree(p);
- char *w=(char)MyMalloc(700);
- MyFree(r);
- int *k=(int)MyMalloc(500*sizeof(int));
- printf("Allocation and deallocation is done successfully!");
- 
+    int *a = (int*)MyMalloc(2000);
+    int *b = (int*)MyMalloc(3000);
+    char *c = (char*)MyMalloc(200);
+    int *d = (int*)MyMalloc(14000);
+    char *e = (char*)MyMalloc(1000);
+    int *f = (int*)MyMalloc(6000);
+    int *g = (int*)MyMalloc(300);
+    int *h = (int*)MyMalloc(200);
+    int *i = (int*)MyMalloc(4000);
+    MyFree(a);
+    MyFree(b);
+    int *j = (int*)MyMalloc(4000);
+}
+
+void* MyMalloc(size_t size){
+    mem_block *curr;
+    void *output = NULL;
+
+    if(!(free_mem->size)){
+        free_mem->size = 25000 - sizeof(mem_block);
+        free_mem->free = 1;
+        free_mem->next = NULL;  
+        printf("\n*** Memory Initialization Successful. Capacity : %d\n", MEM_SIZE-sizeof(mem_block));
+    }
+
+    curr = free_mem;
+
+    while(1){
+        if(curr->size >= size && curr->free == 1){
+            break;
+        }
+        if(curr->next == NULL){
+            break;
+        } 
+        curr = curr->next;
+    }
+
+    if(curr->size < size || curr->free == 0){
+        printf("\nMemory Alloaction Unsuccessful. Requested %d Bytes. %d Bytes remaining out of %d Bytes\n", size, free_cap,  MEM_SIZE-sizeof(mem_block));
+        output = NULL;
+        return output;
+    }
+    else if(curr->size == size){
+        curr->free = 0;
+        curr->size = size;
+        output = (void*)(curr + sizeof(mem_block));\
+        printf("\n%d Bytes Allocated. Memory is at Capacity", size);
+        printf("\nReturned Pointer with the address of : %x\n", output);
+        return output;
+    }
+    else{
+        mem_block *free_block = (void*)((void*)curr + size + sizeof(mem_block));
+        free_block->size = curr->size - (size + sizeof(mem_block));
+        free_block->free = 1;
+        free_block->next = curr->next;
+        curr->size = size;
+        curr->free = 0;
+        curr->next = free_block;
+        free_cap -= size + sizeof(mem_block);
+        output = (void*)(curr + sizeof(mem_block));
+        printf("\n%d Bytes Allocated. %d Bytes remaining out of %d Bytes.", size, free_cap, MEM_SIZE-sizeof(mem_block));
+        printf("\nReturned Pointer with the address of : %x\n", output);
+        return output;
+    }
+}
+
+void MyFree(void* used_block){
+    if(((void*)memory <= used_block) && (used_block <= (void*)(memory + 25000))){
+        mem_block* curr = used_block;
+        curr -= sizeof(mem_block);
+        curr->free = 1;
+        free_cap += curr->size + sizeof(mem_block);
+        printf("\n%d Bytes Freed. %d Bytes remaining out of %d Bytes.\n", curr->size, free_cap, MEM_SIZE-sizeof(mem_block));
+        curr = free_mem;
+        while((curr ->next) != NULL){
+            if((curr->free == 1) && (curr->next->free == 1)){
+                curr->size = curr->size + curr->next->size + sizeof(mem_block);
+                curr->next = curr->next->next;
+            }
+            curr = curr->next;
+        }
+    }
+    else {
+        printf("The given pointer is not in the valid range of Memory.");
+    }
 }

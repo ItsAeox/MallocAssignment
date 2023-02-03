@@ -1,18 +1,19 @@
-#include<stdio.h>
-#include<stddef.h>
+#include <stdio.h>
+#include <stddef.h>
 
-char memory[20000];
+#define MEM_SIZE 25000
 
-struct block{
- size_t size;
- int free;
- struct block *next; 
-};
+char memory[MEM_SIZE];
 
-struct block *freeList=(void*)memory;
+typedef struct mem_block{
+    size_t size;
+    int free;
+    struct mem_block *next;
+}mem_block;
 
-void initialize();
-void split(struct block *fitting_slot,size_t size);
-void *MyMalloc(size_t noOfBytes);
-void merge();
-void MyFree(void* ptr);
+int free_cap = MEM_SIZE-sizeof(mem_block);
+
+mem_block *free_mem = (void*)memory;
+
+void* MyMalloc(size_t size);
+void MyFree(void* used_block);
