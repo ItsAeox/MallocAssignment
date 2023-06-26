@@ -1,12 +1,12 @@
 #include<stdio.h>
 #include<stddef.h>
 
-char memory[20000];
+char memory[25000];
 
 struct block{
- size_t size;
- int free;
- struct block *next; 
+	size_t size;
+	int free;
+	struct block *next; 
 };
 
 struct block *freeList=(void*)memory;

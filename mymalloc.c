@@ -3,21 +3,6 @@
 #include <stddef.h>
 #include "MyMalloc.h"
 
-int main(){
-    int *a = (int*)MyMalloc(2000);
-    int *b = (int*)MyMalloc(3000);
-    char *c = (char*)MyMalloc(200);
-    int *d = (int*)MyMalloc(14000);
-    char *e = (char*)MyMalloc(1000);
-    int *f = (int*)MyMalloc(6000);
-    int *g = (int*)MyMalloc(300);
-    int *h = (int*)MyMalloc(200);
-    int *i = (int*)MyMalloc(4000);
-    MyFree(a);
-    MyFree(b);
-    int *j = (int*)MyMalloc(4000);
-}
-
 void* MyMalloc(size_t size){
     mem_block *curr;
     void *output = NULL;
@@ -49,7 +34,7 @@ void* MyMalloc(size_t size){
     else if(curr->size == size){
         curr->free = 0;
         curr->size = size;
-        output = (void*)(curr + sizeof(mem_block));\
+        output = (void*)(curr + sizeof(mem_block));
         printf("\n%d Bytes Allocated. Memory is at Capacity", size);
         printf("\nReturned Pointer with the address of : %x\n", output);
         return output;
